@@ -1,0 +1,92 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+# Tailwind CSS v4.0 Styling Guidelines
+
+When requesting styling assistance from AI tools, please follow these guidelines to ensure modern, performant, and consistent code using Tailwind CSS v4.0.
+
+## Configuration & Setup
+
+- Use CSS-first configuration with `@theme` blocks directly in CSS instead of separate config files
+- Import Tailwind with `@import "tailwindcss"` instead of `@tailwind` directives
+- Organize styles using layers: `@layer theme, base, components, utilities`
+- Define theme values within the `@theme` block
+
+## Color System
+
+- Use OKLCH color space for all color definitions (e.g., `oklch(0.77 0.2 160)` instead of hex codes)
+- Define colors with clear semantic names in the theme block
+- Use `color-mix()` for transparency instead of opacity modifiers:
+  - ✅ `color-mix(in oklch, var(--color-primary) 25%, transparent)`
+  - ❌ `bg-primary/25`
+- Ensure all colors are accessible with appropriate contrast ratios
+
+## CSS Variables
+
+- Define all theme tokens as CSS variables
+- Follow semantic naming conventions (e.g., `--color-primary`, `--color-primary-foreground`)
+- Reference theme variables for custom components using `var(--variable-name)`
+- Use the cascade layers for proper CSS organization
+
+## Modern Utilities
+
+- Use concise utility syntax where available:
+  - ✅ `size-20` instead of `w-20 h-20`
+  - ✅ `p-4` instead of `padding: 1rem`
+- Utilize 3D transform utilities:
+  - `perspective-*`, `transform-3d`, `rotate-x-*`, `rotate-y-*`
+- Use container queries with `@container` and `@sm:` syntax
+- Leverage dynamic utilities without arbitrary values when possible
+
+## Component Architecture
+
+- Create reusable component classes for repeated patterns
+- Use `@layer components` to define custom component classes
+- Leverage CSS variables in component definitions
+- Keep markup clean by using component classes instead of long utility chains
+
+## Gradients & Effects
+
+- Use expanded gradient APIs:
+  - Linear: `bg-linear-45 from-primary to-secondary`
+  - Radial: `bg-radial-[at_25%_25%] from-white to-black to-75%`
+  - Conic: `bg-conic/[in_hsl_longer_hue] from-primary to-primary`
+- Use backdrop filters with `backdrop-blur-lg`
+- Apply glass morphism with proper layering
+
+## Animation & Interaction
+
+- Use `@starting-style` for entrance animations with the `starting:` variant
+- Define transitions with `transition-{property}` utilities
+- Use `not-*` variants for negative state styling
+- Leverage custom easing values defined in theme
+
+## Accessibility & Responsiveness
+
+- Ensure proper color contrast ratios
+- Use proper semantic HTML elements
+- Implement logical properties for better RTL support
+- Apply responsive design with standard breakpoint variants
+
+## Performance Optimization
+
+- Minimize redundant utilities
+- Use component classes for repeated patterns
+- Utilize the `not-*` variant to reduce CSS output
+- Keep selectors as simple as possible
+
+## Design System Consistency
+
+- Maintain consistent spacing using the spacing scale
+- Use a consistent type scale for typography
+- Apply consistent border radius values
+- Follow a cohesive color palette
+
+By following these guidelines, you'll create modern, maintainable, and performant UI with Tailwind CSS v4.0.

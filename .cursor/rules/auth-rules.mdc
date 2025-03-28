@@ -1,0 +1,120 @@
+---
+description: Authentication System Architecture for Gym Management SaaS
+globs: 
+alwaysApply: false
+---
+# Authentication System Architecture for Gym Management SaaS
+
+This document outlines the authentication architecture and implementation patterns for the FitTrack Pro gym management SaaS application. Follow these guidelines when working with auth-related components.
+
+## Authentication Stack
+
+- **Primary Auth Provider**: Supabase Auth
+- **Database ORM**: Prisma
+- **User Data Storage**: Combination of Supabase Auth and Prisma PostgreSQL database
+- **Session Management**: Supabase session cookies (HttpOnly)
+
+## Architecture Pattern
+
+We implement a dual-database approach:
+1. **Supabase Auth** handles authentication, credentials, and sessions
+2. **Prisma database** stores extended user profile data and application data
+
+### User Creation Flow
+
+During signup, the following steps must occur in order:
+1. Create user in Supabase Auth
+2. Create corresponding user record in Prisma with matching ID
+3. Store extended profile information in Prisma
+4. Implement retry/recovery logic for database failures
+
+## Server Actions Implementation
+
+Auth operations are implemented as Server Actions with the following pattern:
+
+```typescript
+"use server";
+
+// Login action
+export async function login(prevState: any, formData: FormData) {
+  // 1. Extract and validate credentials
+  // 2. Authenticate with Supabase
+  // 3. Handle errors properly
+  // 4. Return structured response OR redirect
+}
+
+// Signup action
+export async function signup(prevState: any, formData: FormData) {
+  // 1. Extract and validate user data
+  // 2. Create Supabase Auth user
+  // 3. Create corresponding Prisma user
+  // 4. Implement error handling and recovery
+  // 5. Return structured response OR redirect
+}
+```
+
+## Error Handling Requirements
+
+Auth operations must:
+1. Return structured error responses for form validation
+2. Implement recovery logic for partial failures
+3. Log detailed error information server-side
+4. Present user-friendly error messages client-side
+
+## User Model
+
+Our user model spans two systems:
+
+**Supabase Auth**:
+- Authentication credentials
+- Email verification status
+- Basic profile in user metadata
+
+**Prisma User Model**:
+- Extended profile information
+- Membership details
+- Role-based access control
+- Business-specific attributes
+
+## Form Implementation Guidelines
+
+Auth forms must:
+1. Use client components with local state for form mode
+2. Implement useFormState for server action integration
+3. Provide clear validation feedback
+4. Handle different auth flows (login, signup)
+5. Use proper form submission mechanics
+
+## Recovery System
+
+The system implements recovery for partial failures:
+1. Track failed user creations
+2. Provide admin tools for resolving issues
+3. Implement retry mechanisms
+4. Handle cleanup of incomplete accounts
+
+## Session Management
+
+Sessions are managed by:
+1. Supabase Auth session cookies
+2. Server-side session validation
+3. Protected route handlers
+4. Client-side auth state management
+
+## Security Requirements
+
+Auth implementation must:
+1. Never store raw passwords
+2. Use environment variables for all sensitive data
+3. Implement proper CORS and CSRF protection
+4. Follow least-privilege principles
+5. Keep auth libraries updated
+
+## Testing Approach
+
+Auth components must be tested for:
+1. Successful login/signup flows
+2. Error handling scenarios
+3. Edge cases (network failures, database issues)
+4. Session management and expiration
+5. Role-based access control

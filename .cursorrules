@@ -1,0 +1,93 @@
+# Cursorrules
+
+## Intro
+I am building 'Gym Management SAAS', I will sometimes refer to it as the App
+
+## Gym Management SAAS
+
+### Overview
+It is a comprehensive management system for gyms and fitness centers. The MVP will be a management dashboard that handles memberships, class scheduling, and facility management. The system will include:
+
+- Membership management and tracking
+- Class scheduling and attendance
+- Facility booking system
+- Trainer management
+- Payment processing
+
+### Core Features
+
+#### Membership Management
+- Member profiles with detailed information
+- Membership tier system
+- Attendance tracking
+- Payment history and billing
+
+#### Class Scheduling
+- Class creation and management
+- Trainer assignment
+- Member sign-ups
+- Attendance tracking
+- Waitlist management
+
+#### Facility Management
+- Equipment tracking and maintenance
+- Room booking system
+- Usage analytics
+- Maintenance scheduling
+
+### UI Description
+
+#### Dashboard
+- Quick overview of key metrics
+- Upcoming classes
+- Membership statistics
+- Facility status
+
+#### Navigation
+- Members
+- Classes
+- Trainers
+- Facilities
+- Reports
+- Settings
+
+#### Member Management
+- Add/Edit member profiles
+- View membership details
+- Track attendance
+- Manage payments
+
+#### Class Management
+- Create/edit class schedules
+- Manage trainer assignments
+- Handle member sign-ups
+- Track attendance
+
+## Technical
+
+### Overview
+The following elements of the stack are ones I'm confident I'll build with:
+
+- Next.js using App router
+- Vercel AI
+- Supabase - db, including their type safety
+- Supabase - auth
+- Tanstack query
+- shadcn
+- Prisma - ORM for database management
+
+
+### Development Guidelines
+- Use Next.js App Router for all routing
+- Implement proper type safety with TypeScript
+- Use Supabase for database and authentication
+- Follow Material UI design system
+- Implement proper error handling and validation
+- Optimize for performance and scalability
+
+### Devias Template
+This workspace contains:
+- the repo that I'm building in (gym-management-main)
+- a repo that I'm building from: nextjs-template-typescript
+
+nextjs-template-typescript is a template made by Devias Kit Pro. I will bring elements in from their repo to mine. So be aware of that, and consider recommending bringing elements in from there as well, and following their coding style and structure.

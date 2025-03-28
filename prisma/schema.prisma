@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Basic user roles
+enum UserRole {
+  ADMIN
+  STAFF
+  MEMBER
+}
+
+// Simple user model
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  name     String
+  password String
+  role     UserRole @default(MEMBER)
+  phone    String?
+
+  // Member-specific fields
+  membershipId    String?
+  membership      Membership? @relation(fields: [membershipId], references: [id])
+  membershipStart DateTime?
+  membershipEnd   DateTime?
+  isActive        Boolean     @default(true)
+
+  // Organization relationship for SaaS multi-tenancy
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastLogin DateTime?
+}
+
+model Membership {
+  id String @id @default(cuid())
+
+  // Membership plan relationship
+  membershipPlanId String
+  membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+
+  // Custom values for this specific membership
+  customFields Json? // Store custom fields and values
+
+  // Organization relationship 
+
+  // User relationship
+  users User[]
+
+  // Timestamps
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model MembershipPlan {
+  id           String   @id @default(cuid())
+  name         String // e.g., "Basic", "Standard", "Premium"
+  description  String?
+  price        Decimal
+  billingCycle String // "monthly", "quarterly", "annually"
+  features     String[] // Array of included features
+  isActive     Boolean  @default(true)
+
+  // Custom attributes defined by the gym
+  attributes Json? // Flexible storage for custom fields
+
+  // Organization relationship
+
+  // Relationship to memberships
+  memberships Membership[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
