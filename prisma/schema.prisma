@@ -15,6 +15,23 @@ enum UserRole {
   MEMBER
 }
 
+enum MembershipDuration {
+  MONTHLY
+  THREE_MONTH
+  SIX_MONTH
+  ANNUAL
+}
+
+enum MembershipStatus {
+  ACTIVE       // Membership is active, user has gym access
+  PAUSED       // Temporarily paused (e.g., vacation hold)
+  CANCELLED    // Cancelled but not yet expired
+  EXPIRED      // Past end date, no longer valid
+  PENDING      // Payment/registration pending
+  FROZEN       // Admin-frozen (e.g., payment issues)
+}
+
+
 // Simple user model
 model User {
   id       String   @id @default(cuid())
@@ -24,12 +41,23 @@ model User {
   role     UserRole @default(MEMBER)
   phone    String?
 
+    // New fields for identification
+  idNumber String?   @unique // National ID, Passport, Driver's License, etc.
+  
+  // Address fields
+  addressLine1 String?
+  addressLine2 String?
+  city        String?
+  state       String?
+  postalCode  String?
+  country     String?
+
   // Member-specific fields
   membershipId    String?
   membership      Membership? @relation(fields: [membershipId], references: [id])
   membershipStart DateTime?
   membershipEnd   DateTime?
-  isActive        Boolean     @default(true)
+  isActive        Boolean     @default(false)
 
   // Organization relationship for SaaS multi-tenancy
 
@@ -45,14 +73,18 @@ model Membership {
   // Membership plan relationship
   membershipPlanId String
   membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
+  duration MembershipDuration?
 
   // Custom values for this specific membership
   customFields Json? // Store custom fields and values
 
-  // Organization relationship 
-
+  billingStartDate DateTime
+  nextBillingDate  DateTime
+  autoRenew        Boolean  @default(true)
   // User relationship
-  users User[]
+  users            User[]
+
+  status           MembershipStatus @default(ACTIVE)
 
   // Timestamps
   startDate DateTime
@@ -65,7 +97,7 @@ model MembershipPlan {
   id           String   @id @default(cuid())
   name         String // e.g., "Basic", "Standard", "Premium"
   description  String?
-  price        Decimal
+  price        Float // Instead of Decimal
   billingCycle String // "monthly", "quarterly", "annually"
   features     String[] // Array of included features
   isActive     Boolean  @default(true)
@@ -81,5 +113,4 @@ model MembershipPlan {
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }

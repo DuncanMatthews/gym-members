@@ -1,6 +1,6 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
+import { MembershipPlan, PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 // Initialize Prisma client once
@@ -67,6 +67,104 @@ export default async function createMembership(
     };
   } catch (error) {
     console.error("Error creating membership:", error);
+    return {
+      message: "An unexpected error occurred. Please try again.",
+      errors: {},
+    };
+  }
+}
+
+export async function getMembershipPlans(): Promise<
+  (Omit<MembershipPlan, "price" | "createdAt" | "updatedAt"> & {
+    price: string;
+    createdAt: string;
+    updatedAt: string;
+  })[]
+> {
+  try {
+    const plans: MembershipPlan[] = await prisma.membershipPlan.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Serialize for client components
+    return plans.map((plan) => ({
+      id: plan.id,
+      name: plan.name,
+      description: plan.description,
+      price: plan.price.toString(),
+      billingCycle: plan.billingCycle,
+      features: plan.features,
+      isActive: plan.isActive,
+      attributes: plan.attributes,
+      createdAt: plan.createdAt.toISOString(),
+      updatedAt: plan.updatedAt.toISOString(),
+    }));
+  } catch (error) {
+    console.log("Error fetching membership plans:", error);
+    throw new Error("Failed to fetch membership plans");
+  }
+}
+
+export async function getMembershipPlanById(id: string) {
+  try {
+    const plan = await prisma.membershipPlan.findUnique({
+      where: { id },
+    });
+    return plan;
+  } catch (error) {
+    console.error("Error fetching membership plan:", error);
+    throw new Error("Failed to fetch membership plan");
+  }
+}
+
+export async function updateMembershipPlan(
+  id: string,
+  formData: FormData
+): Promise<ActionState> {
+  try {
+    const validatedFields = membershipSchema.safeParse({
+      name: formData.get("name"),
+      description: formData.get("description"),
+      price: Number(formData.get("price")),
+      billingCycle: formData.get("billingCycle"),
+      features: formData.getAll("features"),
+      isActive: formData.get("isActive") === "true",
+    });
+
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+      };
+    }
+
+    await prisma.membershipPlan.update({
+      where: { id },
+      data: validatedFields.data,
+    });
+
+    return {
+      message: "Membership plan updated successfully!",
+    };
+  } catch (error) {
+    console.error("Error updating membership plan:", error);
+    return {
+      message: "An unexpected error occurred. Please try again.",
+      errors: {},
+    };
+  }
+}
+
+export async function deleteMembershipPlan(id: string): Promise<ActionState> {
+  try {
+    await prisma.membershipPlan.delete({
+      where: { id },
+    });
+
+    return {
+      message: "Membership plan deleted successfully!",
+    };
+  } catch (error) {
+    console.error("Error deleting membership plan:", error);
     return {
       message: "An unexpected error occurred. Please try again.",
       errors: {},

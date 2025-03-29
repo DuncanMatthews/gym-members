@@ -49,7 +49,7 @@ const data = {
       items: [
         {
           title: "Add Member",
-          url: "/dashboard/members/add",
+          url: "/members/add",
         },
         
       ],
@@ -61,7 +61,7 @@ const data = {
       items: [
         {
           title: "Add Memberships",
-          url: "/dashboard/memberships/add",
+          url: "/memberships/add",
         },
         {
           title: "Get Started",

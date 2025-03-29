@@ -62,9 +62,18 @@ export async function signup(formData: FormData) {
       redirect("/error");
     }
 
-  
+    if (authData.user) {
+      await prisma.user.create({
+        data: {
+          id: authData.user.id, // Use Supabase user ID as Prisma user ID
+          email,
+          name,
+          password: "supabase-managed", // Don't store actual password, it's managed by Supabase
 
-   
+          role: "MEMBER",
+        },
+      });
+    }
 
     // Redirect to dashboard or welcome page
     revalidatePath("/", "layout");

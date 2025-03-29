@@ -1,8 +1,0 @@
-/*
-  Warnings:
-
-
-*/
--- DropIndex
-
--- AlterTable
