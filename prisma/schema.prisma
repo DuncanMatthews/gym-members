@@ -23,14 +23,13 @@ enum MembershipDuration {
 }
 
 enum MembershipStatus {
-  ACTIVE       // Membership is active, user has gym access
-  PAUSED       // Temporarily paused (e.g., vacation hold)
-  CANCELLED    // Cancelled but not yet expired
-  EXPIRED      // Past end date, no longer valid
-  PENDING      // Payment/registration pending
-  FROZEN       // Admin-frozen (e.g., payment issues)
+  ACTIVE // Membership is active, user has gym access
+  PAUSED // Temporarily paused (e.g., vacation hold)
+  CANCELLED // Cancelled but not yet expired
+  EXPIRED // Past end date, no longer valid
+  PENDING // Payment/registration pending
+  FROZEN // Admin-frozen (e.g., payment issues)
 }
-
 
 // Simple user model
 model User {
@@ -40,17 +39,19 @@ model User {
   password String
   role     UserRole @default(MEMBER)
   phone    String?
+  payments          Payment[]
+  invoices          Invoice[]
 
-    // New fields for identification
-  idNumber String?   @unique // National ID, Passport, Driver's License, etc.
-  
+  // New fields for identification
+  idNumber String? @unique // National ID, Passport, Driver's License, etc.
+
   // Address fields
   addressLine1 String?
   addressLine2 String?
-  city        String?
-  state       String?
-  postalCode  String?
-  country     String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
 
   // Member-specific fields
   membershipId    String?
@@ -68,49 +69,147 @@ model User {
 }
 
 model Membership {
-  id String @id @default(cuid())
-
-  // Membership plan relationship
+  id               String         @id @default(cuid())
   membershipPlanId String
   membershipPlan   MembershipPlan @relation(fields: [membershipPlanId], references: [id])
-  duration MembershipDuration?
+  pricingTierId    String
+  pricingTier      PricingTier    @relation(fields: [pricingTierId], references: [id])
 
-  // Custom values for this specific membership
-  customFields Json? // Store custom fields and values
-
+  // Billing information
   billingStartDate DateTime
   nextBillingDate  DateTime
-  autoRenew        Boolean  @default(true)
-  // User relationship
-  users            User[]
+  endDate          DateTime // When the commitment period ends
+  autoRenew        Boolean  @default(false)
 
-  status           MembershipStatus @default(ACTIVE)
+  // Payment tracking
+  paidMonths     Int    @default(0) // Tracks how many months have been paid in the commitment
+  proratedAmount Float? // For month-to-month calculations
+
+  // Status
+  status MembershipStatus @default(ACTIVE)
+
+  // User relationship
+  users User[]
+
+  // Custom values
+  customFields Json?
 
   // Timestamps
-  startDate DateTime
-  endDate   DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  startDate DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments          Payment[]
+  invoices          Invoice[]
 }
 
 model MembershipPlan {
-  id           String   @id @default(cuid())
-  name         String // e.g., "Basic", "Standard", "Premium"
+  id           String        @id @default(cuid())
+  name         String // e.g., "Gold", "Silver", "Bronze"
   description  String?
-  price        Float // Instead of Decimal
-  billingCycle String // "monthly", "quarterly", "annually"
-  features     String[] // Array of included features
-  isActive     Boolean  @default(true)
+  features     String[] // Features included in this tier
+  attributes   Json? // Flexible storage for custom fields
+  pricingTiers PricingTier[] // All available pricing options for this plan
+  memberships  Membership[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
 
-  // Custom attributes defined by the gym
-  attributes Json? // Flexible storage for custom fields
+model PricingTier {
+  id               String             @id @default(cuid())
+  membershipPlanId String
+  membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id])
+  duration         MembershipDuration
+  price            Float // Monthly price (base price)
+  totalPrice       Float // Full price for the commitment period
+  discountPercent  Float? // Optional discount off regular rate
+  memberships      Membership[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
 
-  // Organization relationship
 
-  // Relationship to memberships
-  memberships Membership[]
+// Add these models to your schema
 
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Payment {
+  id                String           @id @default(cuid())
+  membershipId      String
+  membership        Membership       @relation(fields: [membershipId], references: [id])
+  userId            String
+  user              User             @relation(fields: [userId], references: [id])
+  
+  // Payment details
+  amount            Float
+  currency          String           @default("USD")
+  status            PaymentStatus    @default(PENDING)
+  paymentMethod     String?          // e.g., "credit_card", "cash", "bank_transfer"
+  paymentMethodId   String?          // Reference to a stored payment method if applicable
+  transactionId     String?          // External payment processor transaction ID
+  
+  // Invoice reference
+  invoiceId         String?
+  invoice           Invoice?         @relation(fields: [invoiceId], references: [id])
+  
+  // Period covered
+  periodStart       DateTime
+  periodEnd         DateTime
+  
+  // Payment dates
+  dueDate           DateTime
+  paidDate          DateTime?
+  
+  // Additional data
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  CANCELLED
+}
+
+model Invoice {
+  id                String           @id @default(cuid())
+  membershipId      String
+  membership        Membership       @relation(fields: [membershipId], references: [id])
+  userId            String
+  user              User             @relation(fields: [userId], references: [id])
+  
+  // Invoice details
+  invoiceNumber     String           @unique
+  subtotal          Float
+  tax               Float            @default(0)
+  discount          Float            @default(0)
+  total             Float
+  
+  // Status tracking
+  status            InvoiceStatus    @default(DRAFT)
+  
+  // Dates
+  issueDate         DateTime
+  dueDate           DateTime
+  paidDate          DateTime?
+  
+  // Related payments
+  payments          Payment[]
+  
+  // Additional data
+  notes             String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
 }

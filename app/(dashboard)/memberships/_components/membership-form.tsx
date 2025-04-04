@@ -9,18 +9,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useActionState } from "react";
 import createMembership from "../actions";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function MembershipForm() {
   const form = useForm({
     defaultValues: {
       name: "",
       description: "",
-      price: 0,
-      billingCycle: "monthly",
+      monthlyPrice: 0,
+      threeMonthPrice: 0,
+      sixMonthPrice: 0,
+      annualPrice: 0,
       features: [],
       isActive: true,
     },
@@ -45,14 +50,16 @@ export function MembershipForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Plan Name</FormLabel>
               <FormControl>
                 <Input placeholder="Gold Membership" {...field} />
               </FormControl>
+              <FormDescription>The name of this membership plan</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+        
         <FormField
           control={form.control}
           name="description"
@@ -60,46 +67,85 @@ export function MembershipForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input placeholder="Includes all facilities" {...field} />
+                <Textarea
+                  placeholder="Includes all gym facilities and premium services" 
+                  className="resize-none"
+                  {...field} 
+                />
               </FormControl>
+              <FormDescription>Describe what members get with this plan</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="price"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="99.99" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="billingCycle"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Billing Cycle</FormLabel>
-              <FormControl>
-                <select
-                  {...field}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="annually">Annually</option>
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-medium mb-4">Pricing Tiers</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="monthlyPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monthly Price</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="99.99" {...field} />
+                    </FormControl>
+                    <FormDescription>Price for monthly billing</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="threeMonthPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>3-Month Price</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="269.97" {...field} />
+                    </FormControl>
+                    <FormDescription>Price per month for quarterly billing</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="sixMonthPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>6-Month Price</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="509.94" {...field} />
+                    </FormControl>
+                    <FormDescription>Price per month for 6-month billing</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="annualPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Annual Price</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="899.88" {...field} />
+                    </FormControl>
+                    <FormDescription>Price per month for annual billing</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+        
         <FormField
           control={form.control}
           name="features"
@@ -108,7 +154,7 @@ export function MembershipForm() {
               <FormLabel>Features</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Enter features separated by commas"
+                  placeholder="Gym access, Pool, Classes, Personal trainer"
                   onChange={(e) => {
                     const features = e.target.value
                       .split(",")
@@ -118,19 +164,22 @@ export function MembershipForm() {
                   }}
                 />
               </FormControl>
+              <FormDescription>Enter features separated by commas</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <p aria-live="polite">{state?.message}</p>
+        
+        <p aria-live="polite" className="text-sm text-muted-foreground">{state?.message}</p>
         {state?.errors &&
           Object.entries(state.errors).map(([field, messages]) => (
-            <p key={field} className="text-red-500">
+            <p key={field} className="text-sm text-destructive">
               {messages?.join(", ")}
             </p>
           ))}
-        <Button disabled={pending} type="submit">
-          Create Membership
+          
+        <Button disabled={pending} type="submit" className="w-full md:w-auto">
+          Create Membership Plan
         </Button>
       </form>
     </Form>

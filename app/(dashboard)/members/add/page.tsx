@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { getMembershipPlans } from "../../memberships/actions";
-import { AddMemberForm } from "../_components/add-member-form";
+import { AddMemberForm } from "../_components/add-membership-form";
 
 export const metadata: Metadata = {
   title: "Add New Member",
