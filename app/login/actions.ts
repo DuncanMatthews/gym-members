@@ -2,12 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 import { createClient } from "@/utils/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 // Initialize Prisma client
 // In a production app, you should use a singleton pattern
-const prisma = new PrismaClient();
 
 export async function login(formData: FormData) {
   const supabase = await createClient();

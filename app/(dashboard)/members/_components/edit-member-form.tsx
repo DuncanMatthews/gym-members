@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2Icon } from "lucide-react";
+import { User, Membership, Payment, Invoice, PricingTier, MembershipPlan } from "@prisma/client";
 
 import {
   Form,
@@ -22,6 +23,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { updateMember } from "../actions";
 
+// Add this at the top of your page.tsx file
+
+type MemberWithRelations = User & {
+  membership: (Membership & {
+    membershipPlan: MembershipPlan;
+    pricingTier: PricingTier;
+  }) | null;
+  payments: Payment[];
+  invoices: Invoice[];
+};
+
 // Form schema based on your database model
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -34,6 +46,7 @@ const formSchema = z.object({
   idNumber: z.string().min(1, {
     message: "ID Number is required.",
   }),
+  dateOfBirth: z.string().optional(),
   addressLine1: z.string().optional(),
   addressLine2: z.string().optional(),
   city: z.string().optional(),
@@ -42,11 +55,17 @@ const formSchema = z.object({
   country: z.string().optional(),
 });
 
-export function EditMemberForm({ member }) {
+export function EditMemberForm({ member }: { member: MemberWithRelations }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Format date of birth for form input
+  const formatDateForInput = (date: Date | string | null | undefined) => {
+    if (!date) return "";
+    return new Date(date).toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  };
 
   // Initialize form with existing member data
   const form = useForm({
@@ -56,6 +75,7 @@ export function EditMemberForm({ member }) {
       email: member.email,
       phone: member.phone || "",
       idNumber: member.idNumber || "",
+      dateOfBirth: member.dateOfBirth ? formatDateForInput(member.dateOfBirth) : "",
       addressLine1: member.addressLine1 || "",
       addressLine2: member.addressLine2 || "",
       city: member.city || "",
@@ -65,7 +85,7 @@ export function EditMemberForm({ member }) {
     },
   });
 
-  async function onSubmit(values) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     setError(null);
     setSuccess(false);
@@ -74,7 +94,7 @@ export function EditMemberForm({ member }) {
       // Create a FormData object to pass to the server action
       const formData = new FormData();
       Object.entries(values).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== "") {
           formData.append(key, value);
         }
       });
@@ -89,7 +109,7 @@ export function EditMemberForm({ member }) {
         
         // Update form errors
         Object.entries(result.errors).forEach(([field, messages]) => {
-          form.setError(field, { 
+          form.setError(field as keyof typeof values, { 
             type: "manual", 
             message: messages[0] 
           });
@@ -155,6 +175,20 @@ export function EditMemberForm({ member }) {
                   <FormDescription>
                     National ID, Passport, or other identification number
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date of Birth</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

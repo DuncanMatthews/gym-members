@@ -13,7 +13,7 @@ export default async function MembershipsPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Membership Plans</h1>
         <Button asChild>
-          <Link href="/dashboard/memberships/add">
+          <Link href="/membership-plans/add">
             <PlusCircle className="mr-2 h-4 w-4" />
             Create New Plan
           </Link>
@@ -31,8 +31,7 @@ export default async function MembershipsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Price</TableHead>
-                <TableHead>Billing Cycle</TableHead>
-                <TableHead>Availability</TableHead>
+             
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -46,7 +45,7 @@ export default async function MembershipsPage() {
                   <TableCell>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/dashboard/memberships/${plan.id}`}>Edit</Link>
+                        <Link href={`/membership-plans/${plan.id}`}>Edit</Link>
                       </Button>
                       <Button variant="destructive" size="sm">
                         Delete

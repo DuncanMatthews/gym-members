@@ -17,7 +17,7 @@ import createMembership from "../actions";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function MembershipForm() {
+export function MembershipPlanForm() {
   const form = useForm({
     defaultValues: {
       name: "",

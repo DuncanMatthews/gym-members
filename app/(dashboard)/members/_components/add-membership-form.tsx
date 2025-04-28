@@ -55,7 +55,7 @@ const formSchema = z.object({
     .enum(["ACTIVE", "PENDING"], {
       required_error: "Status is required",
     })
-    .default("ACTIVE"),
+    .default("PENDING"),
   customFields: z.any().optional(),
 });
 
@@ -91,7 +91,7 @@ export function AddMembershipForm({
       startDate: new Date(),
       billingStartDate: new Date(),
       autoRenew: true,
-      status: "ACTIVE",
+      status: "PENDING",
     },
   });
 
@@ -108,12 +108,14 @@ export function AddMembershipForm({
       formData.append("billingStartDate", data.billingStartDate.toISOString());
       formData.append("autoRenew", data.autoRenew.toString());
       formData.append("status", data.status);
-
-      if (data.customFields) {
-        formData.append("customFields", JSON.stringify(data.customFields));
-      }
+      formData.append(
+        "customFields",
+        data.customFields ? JSON.stringify(data.customFields) : ""
+      );
 
       const result = await assignMembershipToUser({}, formData);
+
+      console.log("thee", result);
 
       if (result.message && !result.errors) {
         toast.success(result.message);
@@ -168,59 +170,61 @@ export function AddMembershipForm({
           )}
         />
 
-
-<FormField
-  control={form.control}
-  name="pricingTierId"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Pricing Tier</FormLabel>
-      <Select
-        onValueChange={field.onChange}
-        defaultValue={field.value}
-        disabled={!form.watch("membershipPlanId")}
-      >
-        <FormControl>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a pricing tier" />
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          {form.watch("membershipPlanId") && 
-            membershipPlans.find(plan => plan.id === form.watch("membershipPlanId"))?.pricingTiers?.length > 0 ? (
-              membershipPlans
-                .find(plan => plan.id === form.watch("membershipPlanId"))
-                ?.pricingTiers.map((tier) => (
-                  <SelectItem key={tier.id} value={tier.id}>
-                    {tier.duration === "MONTHLY"
-                      ? "Monthly"
-                      : tier.duration === "THREE_MONTH"
-                      ? "3 Months"
-                      : tier.duration === "SIX_MONTH"
-                      ? "6 Months"
-                      : tier.duration === "ANNUAL"
-                      ? "Annual"
-                      : tier.duration}
-                    {" - $"}
-                    {tier.price}/month
-                    {" ($"}
-                    {tier.totalPrice} total)
-                  </SelectItem>
-                ))
-            ) : (
-              <SelectItem value="no-tiers" disabled>No pricing tiers available</SelectItem>
-            )
-          }
-        </SelectContent>
-      </Select>
-      <FormDescription>
-        Select the pricing tier for this membership
-      </FormDescription>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
+        <FormField
+          control={form.control}
+          name="pricingTierId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pricing Tier</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={!form.watch("membershipPlanId")}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a pricing tier" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {form.watch("membershipPlanId") &&
+                    (() => {
+                      const selectedPlan = membershipPlans.find(
+                        (plan) => plan.id === form.watch("membershipPlanId")
+                      );
+                      return selectedPlan?.pricingTiers?.length ?? 0 ? (
+                        selectedPlan?.pricingTiers.map((tier) => (
+                          <SelectItem key={tier.id} value={tier.id}>
+                            {tier.duration === "MONTHLY"
+                              ? "Monthly"
+                              : tier.duration === "THREE_MONTH"
+                              ? "3 Months"
+                              : tier.duration === "SIX_MONTH"
+                              ? "6 Months"
+                              : tier.duration === "ANNUAL"
+                              ? "Annual"
+                              : tier.duration}
+                            {" - $"}
+                            {tier.price}/month
+                            {" ($"}
+                            {tier.totalPrice} total)
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-tiers" disabled>
+                          No pricing tiers available
+                        </SelectItem>
+                      );
+                    })()}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Select the pricing tier for this membership
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
@@ -322,33 +326,7 @@ export function AddMembershipForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Initial Status</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Set to Pending if payment is not yet confirmed
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        
         </div>
 
         <Button type="submit" className="w-full md:w-auto">

@@ -13,6 +13,8 @@ import {
   ShieldIcon,
   CreditCardIcon,
   ClockIcon,
+  AlertTriangleIcon,
+  CakeIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -41,11 +43,16 @@ import {
 import { PageHeader } from "../_components/members-page-header";
 import { DeleteMemberButton } from "../_components/delete-member-buttion";
 import { MemberAttendanceCard } from "../_components/member-attendance-card";
+import {
+  getNextDuePayment,
+  getTotalOutstandingAmount,
+  hasDuePayments,
+} from "@/lib/utils";
 
 interface MemberPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 function getInitials(name: string) {
@@ -87,11 +94,15 @@ function getStatusLabel(status: string | null | undefined) {
 }
 
 export default async function MemberPage({ params }: MemberPageProps) {
-  const { id } = params;
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
   try {
     // Fetch member data
     const member = await getMemberById(id);
+    
+
+    console.log('memberpay',member)
 
     // If no member found, show 404
     if (!member) {
@@ -281,6 +292,19 @@ export default async function MemberPage({ params }: MemberPageProps) {
                           </p>
                         </div>
                       </div>
+                    {member.dateOfBirth && (
+                      <div className="flex items-start space-x-3">
+                        <CakeIcon className="size-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="font-medium">
+                            {format(new Date(member.dateOfBirth), "MMMM d, yyyy")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Date of Birth
+                          </p>
+                        </div>
+                      </div>
+                    )}
                     </div>
                   </div>
                 </div>
@@ -307,16 +331,79 @@ export default async function MemberPage({ params }: MemberPageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {member.payments &&
+                  member.invoices &&
+                  hasDuePayments(member.payments, member.invoices) && (
+                    <Card className="bg-amber-50 border-amber-200 mb-4">
+                      <CardContent className="pt-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-amber-100 rounded-full p-2">
+                            <AlertTriangleIcon className="size-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-amber-800">
+                              Payment Due
+                            </h3>
+                            <p className="text-sm text-amber-700">
+                              {getNextDuePayment(
+                                member.payments,
+                                member.invoices
+                              ) ? (
+                                <>
+                                  $
+                                  {getNextDuePayment(
+                                    member.payments,
+                                    member.invoices
+                                  )?.amount.toFixed(2)}{" "}
+                                  due by{" "}
+                                  {format(
+                                    new Date(
+                                      getNextDuePayment(
+                                        member.payments,
+                                        member.invoices
+                                      )?.dueDate as Date
+                                    ),
+                                    "MMM d, yyyy"
+                                  )}
+                                </>
+                              ) : (
+                                ""
+                              )}
+                            </p>
+                            <p className="text-xs text-amber-600 mt-1">
+                              Total outstanding: $
+                              {getTotalOutstandingAmount(
+                                member.payments,
+                                member.invoices
+                              ).toFixed(2)}
+                            </p>
+                            <div className="mt-3">
+                              <Link href={`/members/${id}/payments`} passHref>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-amber-300 bg-amber-100 hover:bg-amber-200 text-amber-800"
+                                >
+                                  View Payment Details
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
                 {member.membership ? (
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
                         <h3 className="font-medium">
-                          {member.membership?.membershipPlanId ||
+                          {member.membership?.membershipPlan?.name ||
+                            member.membership?.membershipPlanId ||
                             "Standard Plan"}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {member.membership?.membershipPlanId ||
+                          {member.membership?.membershipPlan?.description ||
                             "Regular gym access"}
                         </p>
                       </div>
@@ -332,6 +419,45 @@ export default async function MemberPage({ params }: MemberPageProps) {
                     <Separator />
 
                     <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Plan Type</span>
+                        <span className="font-medium">
+                          {member.membership.pricingTier?.duration
+                            ? member.membership.pricingTier.duration
+                                .toLowerCase()
+                                .replace("_", " ")
+                                .split(" ")
+                                .map(
+                                  (word) =>
+                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                )
+                                .join(" ")
+                            : "N/A"}
+                        </span>
+                      </div>
+
+                      {member.membership.pricingTier?.price && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Monthly Price
+                          </span>
+                          <span className="font-medium">
+                            ${member.membership.pricingTier.price}
+                          </span>
+                        </div>
+                      )}
+
+                      {member.membership.pricingTier?.totalPrice && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Total Price
+                          </span>
+                          <span className="font-medium">
+                            ${member.membership.pricingTier.totalPrice}
+                          </span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">
                           Start Date
@@ -380,6 +506,8 @@ export default async function MemberPage({ params }: MemberPageProps) {
                             : "N/A"}
                         </span>
                       </div>
+
+                      
                     </div>
 
                     <div className="mt-4">

@@ -1,7 +1,7 @@
 // app/(dashboard)/members/[id]/membership/new/page.tsx
 import { redirect } from "next/navigation";
 import { getMemberById } from "../../../actions";
-import { getMembershipPlans } from "../../../../memberships/actions";
+import { getMembershipPlans } from "../../../../membership-plans/actions";
 import { AddMembershipForm } from "../../../_components/add-membership-form";
 
 interface PageProps {

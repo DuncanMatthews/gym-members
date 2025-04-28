@@ -11,13 +11,14 @@ import { getMemberById } from "../../actions";
 
 
 interface EditMemberPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditMemberPage({ params }: EditMemberPageProps) {
-  const { id } = params;
+  const resolvedParams = (await params).id
+  const id = resolvedParams
   
   try {
     // Try to fetch member data

@@ -33,18 +33,18 @@ enum MembershipStatus {
 
 // Simple user model
 model User {
-  id       String   @id @default(cuid())
-  email    String   @unique
+  id       String    @id @default(cuid())
+  email    String    @unique
   name     String
   password String
-  role     UserRole @default(MEMBER)
+  role     UserRole  @default(MEMBER)
   phone    String?
-  payments          Payment[]
-  invoices          Invoice[]
-
+  payments Payment[]
+  invoices Invoice[]
+  gender String?
   // New fields for identification
-  idNumber String? @unique // National ID, Passport, Driver's License, etc.
-
+  idNumber     String?   @unique // National ID, Passport, Driver's License, etc.
+  dateOfBirth  DateTime?
   // Address fields
   addressLine1 String?
   addressLine2 String?
@@ -99,13 +99,13 @@ model Membership {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  payments          Payment[]
-  invoices          Invoice[]
+  payments Payment[]
+  invoices Invoice[]
 }
 
 model MembershipPlan {
   id           String        @id @default(cuid())
-  name         String // e.g., "Gold", "Silver", "Bronze"
+  name         String        @unique
   description  String?
   features     String[] // Features included in this tier
   attributes   Json? // Flexible storage for custom fields
@@ -117,51 +117,52 @@ model MembershipPlan {
 
 model PricingTier {
   id               String             @id @default(cuid())
-  membershipPlanId String
+  membershipPlanId String // Remove @unique here
   membershipPlan   MembershipPlan     @relation(fields: [membershipPlanId], references: [id])
   duration         MembershipDuration
-  price            Float // Monthly price (base price)
-  totalPrice       Float // Full price for the commitment period
-  discountPercent  Float? // Optional discount off regular rate
+  price            Float
+  totalPrice       Float
+  discountPercent  Float?
   memberships      Membership[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
-}
 
+  @@unique([membershipPlanId, duration]) // Keep this compound constraint
+}
 
 // Add these models to your schema
 
 model Payment {
-  id                String           @id @default(cuid())
-  membershipId      String
-  membership        Membership       @relation(fields: [membershipId], references: [id])
-  userId            String
-  user              User             @relation(fields: [userId], references: [id])
-  
+  id           String     @id @default(cuid())
+  membershipId String
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+
   // Payment details
-  amount            Float
-  currency          String           @default("USD")
-  status            PaymentStatus    @default(PENDING)
-  paymentMethod     String?          // e.g., "credit_card", "cash", "bank_transfer"
-  paymentMethodId   String?          // Reference to a stored payment method if applicable
-  transactionId     String?          // External payment processor transaction ID
-  
+  amount          Float
+  currency        String        @default("USD")
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String? // e.g., "credit_card", "cash", "bank_transfer"
+  paymentMethodId String? // Reference to a stored payment method if applicable
+  transactionId   String? // External payment processor transaction ID
+
   // Invoice reference
-  invoiceId         String?
-  invoice           Invoice?         @relation(fields: [invoiceId], references: [id])
-  
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+
   // Period covered
-  periodStart       DateTime
-  periodEnd         DateTime
-  
+  periodStart DateTime
+  periodEnd   DateTime
+
   // Payment dates
-  dueDate           DateTime
-  paidDate          DateTime?
-  
+  dueDate  DateTime
+  paidDate DateTime?
+
   // Additional data
-  metadata          Json?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum PaymentStatus {
@@ -174,35 +175,35 @@ enum PaymentStatus {
 }
 
 model Invoice {
-  id                String           @id @default(cuid())
-  membershipId      String
-  membership        Membership       @relation(fields: [membershipId], references: [id])
-  userId            String
-  user              User             @relation(fields: [userId], references: [id])
-  
+  id           String     @id @default(cuid())
+  membershipId String
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+
   // Invoice details
-  invoiceNumber     String           @unique
-  subtotal          Float
-  tax               Float            @default(0)
-  discount          Float            @default(0)
-  total             Float
-  
+  invoiceNumber String @unique
+  subtotal      Float
+  tax           Float  @default(0)
+  discount      Float  @default(0)
+  total         Float
+
   // Status tracking
-  status            InvoiceStatus    @default(DRAFT)
-  
+  status InvoiceStatus @default(DRAFT)
+
   // Dates
-  issueDate         DateTime
-  dueDate           DateTime
-  paidDate          DateTime?
-  
+  issueDate DateTime
+  dueDate   DateTime
+  paidDate  DateTime?
+
   // Related payments
-  payments          Payment[]
-  
+  payments Payment[]
+
   // Additional data
-  notes             String?
-  metadata          Json?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  notes     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum InvoiceStatus {

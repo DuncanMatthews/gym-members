@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { format } from "date-fns";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { 
   MoreHorizontalIcon, 
   ArrowUpDownIcon
@@ -25,8 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { listMembers } from "../actions";
-import { MembersTableSkeleton } from "./member-table-skeleton";
 
 function getStatusBadgeVariant(status: string | null | undefined) {
   switch (status) {
@@ -65,35 +63,25 @@ function getInitials(name: string) {
     .substring(0, 2);
 }
 
-export function MembersTable() {
-  const [members, setMembers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Type for a member
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  idNumber?: string | null;
+  createdAt?: string | Date;
+  membership?: {
+    status?: string;
+  } | null;
+}
 
-  useEffect(() => {
-    async function fetchMembers() {
-      try {
-        const data = await listMembers();
-        setMembers(data);
-      } catch (err) {
-        console.error("Error fetching members:", err);
-        setError("Failed to load members. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchMembers();
-  }, []);
+// Props interface
+interface MembersTableProps {
+  members: Member[];
+}
 
-  if (loading) {
-    return <div className="text-center py-4"><MembersTableSkeleton /></div>;
-  }
-
-  if (error) {
-    return <div className="text-destructive text-center py-4">{error}</div>;
-  }
-
+export function MembersTable({ members }: MembersTableProps) {
   return (
     <div className="rounded-md border">
       <Table>

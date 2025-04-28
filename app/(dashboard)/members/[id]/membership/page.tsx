@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMemberById } from "../../actions";
+import { MembershipDetails } from "../../_components/membership-details";
 
 interface PageProps {
   params: Promise<{
@@ -11,23 +12,25 @@ export default async function MemberMembershipPage({ params }: PageProps) {
   const { id } = await params;
   const member = await getMemberById(id);
 
+  console.log("member1",member)
+
   if (!member) {
     return notFound();
   }
 
-  if (!member.membership) {
-    return (
-      <div className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Membership Information</h2>
-        <div className="bg-amber-50 p-4 rounded-md border border-amber-200">
-          <p>This member does not have an active membership.</p>
-        </div>
-      </div>
-    );
-  }
+  // Convert null to undefined to match the expected type
   return (
-    <div>
-      <div>Member Membership Page</div>
-    </div>
+    <MembershipDetails
+      member={{
+        ...member,
+        phone: member.phone || undefined,
+        membership: member.membership || undefined,
+        membershipId: member.membershipId || undefined,
+        membershipStart: member.membershipStart || undefined,
+        membershipEnd: member.membershipEnd || undefined,
+        isActive: member.isActive ?? undefined,
+        role: member.role || undefined
+      }}
+    />
   );
 }

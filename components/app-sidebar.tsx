@@ -1,23 +1,20 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
+  Banknote,
   BookOpen,
-  Bot,
   Command,
-  Frame,
   LifeBuoy,
-  Map,
-  PieChart,
+  Notebook,
   Send,
-  Settings2,
   SquareTerminal,
-} from "lucide-react"
+  User,
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +23,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const data = {
   user: {
@@ -37,67 +34,71 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/",
       icon: SquareTerminal,
       isActive: true,
-      
     },
     {
       title: "Members",
-      url: "/dashboard/members",
-      icon: Bot,
+      url: "/#",
+      isActive: true,
+      icon: User,
       items: [
+        {
+          title: "View All Members",
+          url: "/members",
+        },
         {
           title: "Add Member",
           url: "/members/add",
         },
-        
       ],
     },
     {
-      title: "Memberships",
+      title: "Membership Plans",
       url: "#",
+      isActive: true,
+      
       icon: BookOpen,
       items: [
         {
-          title: "Add Memberships",
-          url: "/memberships/add",
+          title: "View All Membership Plans",
+          url: "/membership-plans",
         },
         {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
+          title: "Create Membership Plans",
+          url: "/membership-plans/add",
         },
       ],
     },
     {
       title: "Payments",
-      url: "#",
-      icon: Settings2,
+      url: "/#",
+      icon: Banknote,
+      isActive: true,
+      
       items: [
         {
-          title: "General",
-          url: "#",
+          title: "View All Payments",
+          url: "/payments",
         },
+       
+       
+      ],
+    },
+    {
+      title: "Invoices",
+      url: "/#",
+      icon: Notebook,
+      isActive: true,
+      
+      items: [
         {
-          title: "Team",
-          url: "#",
+          title: "View All Invoices",
+          url: "/payments/invoices",
         },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
+       
+       
       ],
     },
   ],
@@ -113,24 +114,7 @@ const data = {
       icon: Send,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -154,12 +138,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
